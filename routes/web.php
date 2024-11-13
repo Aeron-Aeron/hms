@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\AppointmentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,12 +19,26 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::middleware([
-    'auth:sanctum',
-    config('jetstream.auth_session'),
-    'verified',
-])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+Route::middleware(['auth'])->group(function () {
+    // Patient Routes
+    Route::middleware(['checkRole:patient'])->group(function () {
+        Route::get('/patient/dashboard', [DashboardController::class, 'patientDashboard']);
+        Route::resource('appointments', AppointmentController::class);
+    });
+
+    // Doctor Routes
+    Route::middleware(['checkRole:doctor'])->group(function () {
+        Route::get('/doctor/dashboard', [DashboardController::class, 'doctorDashboard']);
+        Route::put('/appointments/{appointment}/status', [AppointmentController::class, 'updateStatus']);
+    });
+
+    // Admin Routes
+    Route::middleware(['checkRole:admin'])->group(function () {
+        Route::get('/admin/dashboard', [DashboardController::class, 'adminDashboard']);
+        Route::resource('doctors', DoctorController::class);
+    });
+
+    Route::middleware(['auth', 'checkRole:doctor'])->group(function () {
+        Route::post('/availability/update', [AvailabilityController::class, 'update'])->name('doctor.availability.update');
+    });
 });
