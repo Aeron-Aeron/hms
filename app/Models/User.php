@@ -31,4 +31,29 @@ class User extends Authenticatable
     {
         return $this->hasOne(DoctorProfile::class);
     }
+
+    public function appointments()
+    {
+        return $this->hasMany(Appointment::class, 'patient_id');
+    }
+
+    public function doctorAppointments()
+    {
+        return $this->hasMany(Appointment::class, 'doctor_id');
+    }
+
+    public function healthProblems()
+    {
+        return $this->hasMany(HealthProblem::class);
+    }
+
+    public function ratings()
+    {
+        return $this->hasMany(DoctorRating::class, 'doctor_id');
+    }
+
+    public function givenRatings()
+    {
+        return $this->hasMany(DoctorRating::class, 'patient_id');
+    }
 }

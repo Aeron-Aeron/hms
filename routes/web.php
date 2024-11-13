@@ -13,8 +13,10 @@ use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminAppointmentController;
 use App\Http\Controllers\Patient\HealthProblemController;
 use App\Http\Controllers\Patient\DoctorRecommendationController;
-use App\Http\Controllers\Patient\PatientAppointmentController;
 use App\Http\Controllers\Doctor\DoctorAppointmentController;
+use App\Http\Controllers\Patient\AppointmentController as PatientAppointmentController;
+use App\Http\Controllers\Patient\HealthProblemController as PatientHealthProblemController;
+use App\Http\Controllers\Patient\DoctorController;
 
 /*
 |--------------------------------------------------------------------------
@@ -83,12 +85,18 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::middleware(['auth', 'role:patient'])->prefix('patient')->group(function () {
-        Route::get('/dashboard', [PatientDashboardController::class, 'index'])->name('patient.dashboard');
+    Route::middleware(['auth', 'role:patient'])->prefix('patient')->name('patient.')->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+        // Appointment routes
+        Route::resource('appointments', AppointmentController::class);
+
+        // Health problems routes
         Route::resource('health-problems', HealthProblemController::class);
-        Route::get('/recommended-doctors', [DoctorRecommendationController::class, 'index'])->name('patient.doctors.recommended');
-        Route::resource('appointments', PatientAppointmentController::class);
-        Route::put('/appointments/{appointment}/accept-time', [PatientAppointmentController::class, 'acceptTime'])->name('patient.appointments.acceptTime');
+
+        // Doctor recommendation route
+        Route::get('/doctors/recommended', [DoctorController::class, 'recommended'])
+            ->name('doctors.recommended');
     });
 
     Route::middleware(['auth', 'role:doctor'])->prefix('doctor')->group(function () {
