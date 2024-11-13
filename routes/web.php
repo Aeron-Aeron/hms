@@ -8,6 +8,13 @@ use App\Http\Controllers\Auth\CustomRegisterController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Doctor\DashboardController as DoctorDashboardController;
 use App\Http\Controllers\Patient\DashboardController as PatientDashboardController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Admin\AdminAppointmentController;
+use App\Http\Controllers\Patient\HealthProblemController;
+use App\Http\Controllers\Patient\DoctorRecommendationController;
+use App\Http\Controllers\Patient\PatientAppointmentController;
+use App\Http\Controllers\Doctor\DoctorAppointmentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -47,31 +54,48 @@ Route::middleware(['auth'])->group(function () {
 
     // Default dashboard route that redirects based on role
     Route::get('/dashboard', function () {
-        switch(auth()->user()->role) {
-            case 'admin':
-                return redirect()->route('admin.dashboard');
-            case 'doctor':
-                return redirect()->route('doctor.dashboard');
-            case 'patient':
-                return redirect()->route('patient.dashboard');
-            default:
-                return redirect()->route('login');
-        }
+        return redirect()->route(auth()->user()->role . '.dashboard');
     })->name('dashboard');
 
     // Admin routes
-    Route::middleware(['auth', 'role:admin'])->group(function () {
-        Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+    Route::middleware(['role:admin'])->prefix('admin')->group(function () {
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+        Route::get('/users', [AdminUserController::class, 'index'])->name('admin.users.index');
+        Route::put('/users/{user}/role', [AdminUserController::class, 'updateRole'])->name('admin.users.updateRole');
+        Route::get('/appointments', [AdminAppointmentController::class, 'index'])->name('admin.appointments.index');
+        Route::put('/appointments/{appointment}/status', [AdminAppointmentController::class, 'updateStatus'])->name('admin.appointments.updateStatus');
     });
 
     // Doctor routes
-    Route::middleware(['auth', 'role:doctor'])->group(function () {
-        Route::get('/doctor/dashboard', [DoctorDashboardController::class, 'index'])->name('doctor.dashboard');
+    Route::middleware(['role:doctor'])->group(function () {
+        Route::get('/doctor/dashboard', [DoctorDashboardController::class, 'index'])
+            ->name('doctor.dashboard');
     });
 
     // Patient routes
-    Route::middleware(['auth', 'role:patient'])->group(function () {
-        Route::get('/patient/dashboard', [PatientDashboardController::class, 'index'])->name('patient.dashboard');
+    Route::middleware(['role:patient'])->group(function () {
+        Route::get('/patient/dashboard', [PatientDashboardController::class, 'index'])
+            ->name('patient.dashboard');
+    });
+
+    // Profile routes
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::middleware(['auth', 'role:patient'])->prefix('patient')->group(function () {
+        Route::get('/dashboard', [PatientDashboardController::class, 'index'])->name('patient.dashboard');
+        Route::resource('health-problems', HealthProblemController::class);
+        Route::get('/recommended-doctors', [DoctorRecommendationController::class, 'index'])->name('patient.doctors.recommended');
+        Route::resource('appointments', PatientAppointmentController::class);
+        Route::put('/appointments/{appointment}/accept-time', [PatientAppointmentController::class, 'acceptTime'])->name('patient.appointments.acceptTime');
+    });
+
+    Route::middleware(['auth', 'role:doctor'])->prefix('doctor')->group(function () {
+        Route::get('/dashboard', [DoctorDashboardController::class, 'index'])->name('doctor.dashboard');
+        Route::get('/appointments', [DoctorAppointmentController::class, 'index'])->name('doctor.appointments.index');
+        Route::put('/appointments/{appointment}/status', [DoctorAppointmentController::class, 'updateStatus'])->name('doctor.appointments.updateStatus');
+        Route::put('/appointments/{appointment}/reschedule', [DoctorAppointmentController::class, 'reschedule'])->name('doctor.appointments.reschedule');
     });
 });
 
