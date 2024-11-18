@@ -104,6 +104,7 @@
                                 </form>
 
                                 <button onclick="showRescheduleModal({{ $appointment->id }})"
+                                        type="button"
                                         class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded">
                                     Reschedule
                                 </button>
@@ -178,13 +179,23 @@
     </div>
 
     <!-- Reschedule Modal -->
-    <div id="rescheduleModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full">
-        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <div id="rescheduleModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white" onclick="event.stopPropagation()">
             <div class="mt-3">
-                <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Reschedule Appointment</h3>
-                <form id="rescheduleForm" method="POST">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium leading-6 text-gray-900">Reschedule Appointment</h3>
+                    <button type="button" onclick="closeRescheduleModal()" class="text-gray-400 hover:text-gray-500">
+                        <span class="sr-only">Close</span>
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <form id="rescheduleForm" method="POST" onsubmit="return confirmReschedule(event)">
                     @csrf
                     @method('PUT')
+                    <input type="hidden" name="appointment_id" id="appointment_id">
                     <div class="mb-4">
                         <label for="proposed_time" class="block text-sm font-medium text-gray-700">New Date & Time</label>
                         <input type="datetime-local"
@@ -192,6 +203,9 @@
                                id="proposed_time"
                                required
                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        @error('proposed_time')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
                     <div class="flex justify-end space-x-2">
                         <button type="button"
@@ -211,16 +225,45 @@
 
     @push('scripts')
     <script>
+        // Add this function to handle opening the modal
         function showRescheduleModal(appointmentId) {
+            // Get the modal and form elements
             const modal = document.getElementById('rescheduleModal');
             const form = document.getElementById('rescheduleForm');
-            form.action = "{{ route('doctor.appointments.reschedule', ':id') }}".replace(':id', appointmentId);
+
+            // Set the form action URL
+            form.action = `/doctor/appointments/${appointmentId}/reschedule`;
+
+            // Show the modal
             modal.classList.remove('hidden');
+
+            // Set minimum date to today
+            const dateInput = document.getElementById('proposed_time');
+            const today = new Date();
+            const formattedDate = today.toISOString().slice(0, 16);
+            dateInput.min = formattedDate;
         }
 
+        // Add this function to handle closing the modal
         function closeRescheduleModal() {
             const modal = document.getElementById('rescheduleModal');
             modal.classList.add('hidden');
+        }
+
+        // Close modal when clicking outside
+        document.addEventListener('click', function(event) {
+            const modal = document.getElementById('rescheduleModal');
+            if (event.target === modal) {
+                closeRescheduleModal();
+            }
+        });
+
+        // Existing confirmReschedule function
+        function confirmReschedule(event) {
+            event.preventDefault();
+            if (confirm('Are you sure you want to reschedule this appointment?')) {
+                event.target.submit();
+            }
         }
     </script>
     @endpush

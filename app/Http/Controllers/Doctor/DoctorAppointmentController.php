@@ -48,15 +48,14 @@ class DoctorAppointmentController extends Controller
     public function reschedule(Request $request, Appointment $appointment)
     {
         $request->validate([
-            'new_scheduled_time' => 'required|date|after:now',
+            'proposed_time' => 'required|date|after:now',
         ]);
 
         $appointment->update([
-            'scheduled_time' => $request->new_scheduled_time,
-            'status' => 'accepted', // or whatever status you want to set after rescheduling
+            'scheduled_time' => $request->proposed_time,
+            'status' => 'rescheduled'
         ]);
 
-        return redirect()->route('doctor.appointments.show', $appointment)
-            ->with('success', 'Appointment rescheduled successfully.');
+        return redirect()->back()->with('success', 'Appointment rescheduled successfully.');
     }
 }
