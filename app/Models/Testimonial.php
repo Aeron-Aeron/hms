@@ -13,7 +13,7 @@ class Testimonial extends Model
         'user_id',
         'comment',
         'rating',
-        'is_featured'
+        'is_approved'
     ];
 
     public function user()

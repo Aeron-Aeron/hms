@@ -11,12 +11,13 @@ class WelcomeController extends Controller
     public function index()
     {
         $featuredDoctors = User::where('role', 'doctor')
-            ->with('doctorProfile')
+            ->with(['doctorProfile', 'ratings'])
+            ->withAvg('ratings', 'rating')
+            ->orderByDesc('ratings_avg_rating')
             ->take(3)
             ->get();
 
         $testimonials = Testimonial::with('user')
-            ->where('is_featured', true)
             ->latest()
             ->take(3)
             ->get();

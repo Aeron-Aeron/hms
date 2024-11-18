@@ -56,4 +56,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(DoctorRating::class, 'patient_id');
     }
+
+    public function hasRole($role)
+    {
+        return $this->role === $role;
+    }
 }

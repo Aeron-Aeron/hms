@@ -33,9 +33,4 @@ class Appointment extends Model
     {
         return $this->belongsTo(User::class, 'doctor_id');
     }
-
-    public function rating()
-    {
-        return $this->hasOne(DoctorRating::class);
-    }
 }

@@ -18,13 +18,13 @@ class DashboardController extends Controller
             'pending_appointments' => Appointment::where('status', 'pending')->count(),
         ];
 
-        $recent_appointments = Appointment::with(['patient', 'doctor'])
+        $recent_appointments = Appointment::with(['doctor', 'patient'])
             ->latest()
             ->take(5)
             ->get();
 
         $users = User::latest()
-            ->take(10)
+            ->take(5)
             ->get();
 
         return view('admin.dashboard', compact('stats', 'recent_appointments', 'users'));

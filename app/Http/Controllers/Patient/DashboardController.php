@@ -14,6 +14,12 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
 
+        $featuredDoctors = User::where('role', 'doctor')
+    ->with('doctorProfile')
+    ->latest()
+    ->take(4)
+    ->get();
+
         $appointments = Appointment::where('patient_id', $user->id)
             ->with('doctor')
             ->latest()

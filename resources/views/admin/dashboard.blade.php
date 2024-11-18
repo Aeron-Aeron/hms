@@ -39,6 +39,7 @@
                                     <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
                                     <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                                     <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
@@ -55,6 +56,32 @@
                                             @else bg-blue-100 text-blue-800 @endif">
                                             {{ ucfirst($appointment->status) }}
                                         </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <div class="flex space-x-2">
+                                            <!-- Status Update -->
+                                            <form action="{{ route('admin.appointments.updateStatus', $appointment) }}" method="POST" class="inline">
+                                                @csrf
+                                                @method('PUT')
+                                                <select name="status" onchange="this.form.submit()"
+                                                        class="text-sm rounded border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                                    <option value="pending" {{ $appointment->status === 'pending' ? 'selected' : '' }}>Pending</option>
+                                                    <option value="accepted" {{ $appointment->status === 'accepted' ? 'selected' : '' }}>Accepted</option>
+                                                    <option value="completed" {{ $appointment->status === 'completed' ? 'selected' : '' }}>Completed</option>
+                                                    <option value="cancelled" {{ $appointment->status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                                                </select>
+                                            </form>
+
+                                            <!-- Delete -->
+                                            <form action="{{ route('admin.appointments.destroy', $appointment) }}" method="POST"
+                                                  onsubmit="return confirm('Are you sure you want to delete this appointment?');" class="inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="text-red-600 hover:text-red-900">
+                                                    Delete
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                                 @endforeach
@@ -76,6 +103,7 @@
                                     <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                                     <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
                                     <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+                                    <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
@@ -92,6 +120,22 @@
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">{{ $user->created_at->format('M d, Y') }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        @if($user->id !== auth()->id()) {{-- Prevent changing own role --}}
+                                            <form action="{{ route('admin.users.updateRole', $user) }}" method="POST" class="inline">
+                                                @csrf
+                                                @method('PUT')
+                                                <select name="role" onchange="this.form.submit()"
+                                                        class="text-sm rounded border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                                    <option value="patient" {{ $user->role === 'patient' ? 'selected' : '' }}>Patient</option>
+                                                    <option value="doctor" {{ $user->role === 'doctor' ? 'selected' : '' }}>Doctor</option>
+                                                    <option value="admin" {{ $user->role === 'admin' ? 'selected' : '' }}>Admin</option>
+                                                </select>
+                                            </form>
+                                        @else
+                                            <span class="text-gray-400">Current User</span>
+                                        @endif
+                                    </td>
                                 </tr>
                                 @endforeach
                             </tbody>
