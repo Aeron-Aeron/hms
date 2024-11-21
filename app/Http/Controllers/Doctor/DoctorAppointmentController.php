@@ -51,11 +51,15 @@ class DoctorAppointmentController extends Controller
             'proposed_time' => 'required|date|after:now',
         ]);
 
-        $appointment->update([
-            'scheduled_time' => $request->proposed_time,
-            'status' => 'rescheduled'
-        ]);
+        try {
+            $appointment->update([
+                'scheduled_time' => $request->proposed_time,
+                'status' => 'rescheduled'
+            ]);
 
-        return redirect()->back()->with('success', 'Appointment rescheduled successfully.');
+            return redirect()->back()->with('success', 'Appointment rescheduled successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to reschedule appointment.');
+        }
     }
 }

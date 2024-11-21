@@ -83,6 +83,7 @@
                                 @if($appointment->status === 'accepted')
                                     <form action="{{ route('doctor.appointments.updateStatus', $appointment) }}" method="POST">
                                         @csrf
+                                        @method('PUT')
                                         <input type="hidden" name="status" value="completed">
                                         <button type="submit"
                                                 class="w-full bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
