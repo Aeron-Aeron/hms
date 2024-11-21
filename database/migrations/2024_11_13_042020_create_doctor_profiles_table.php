@@ -13,10 +13,8 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('specialization');
             $table->text('bio')->nullable();
-            $table->string('qualification');
-            $table->string('experience');
-            $table->decimal('consultation_fee', 10, 2)->nullable();
-            $table->string('profile_image')->nullable();
+            $table->string('education')->nullable();  // Add this line
+            $table->integer('experience_years')->nullable();  // Add this line
             $table->timestamps();
         });
     }

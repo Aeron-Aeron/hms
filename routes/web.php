@@ -23,6 +23,7 @@ use App\Http\Controllers\Doctor\DoctorAppointmentController;
 use App\Http\Controllers\Patient\HealthProblemController;
 use App\Http\Controllers\Patient\AppointmentController as PatientAppointmentController;
 use App\Http\Controllers\Patient\DoctorController;
+use App\Http\Controllers\Patient\RatingController;
 
 // Testing & Debug Routes (should be disabled in production)
 Route::prefix('debug')->group(function () {
@@ -124,5 +125,9 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
 
             Route::resource('health-problems', HealthProblemController::class);
             Route::resource('appointments', PatientAppointmentController::class);
+            Route::post('/ratings/{rating}/vote', [RatingController::class, 'vote'])->name('ratings.vote');
+            Route::post('/ratings', [RatingController::class, 'store'])->name('ratings.store');
+            Route::get('/doctors', [DoctorController::class, 'index'])->name('doctors.index');
+            Route::get('/doctors/{doctor}', [DoctorController::class, 'show'])->name('doctors.show');
         });
 });
