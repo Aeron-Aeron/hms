@@ -59,7 +59,7 @@
                     </div>
                 </div>
                 <div class="hidden md:block">
-                    <img src="/images/doctor-illustration.svg" alt="Doctor illustration" class="w-full">
+                    <img src="{{ asset('images/doctor-illustration.jpg') }}" alt="Doctor illustration" class="w-full rounded-lg shadow-lg">
                 </div>
             </div>
         </div>
