@@ -24,6 +24,7 @@ use App\Http\Controllers\Patient\HealthProblemController;
 use App\Http\Controllers\Patient\AppointmentController as PatientAppointmentController;
 use App\Http\Controllers\Patient\DoctorController;
 use App\Http\Controllers\Patient\RatingController;
+use App\Http\Controllers\Patient\DiseasePredictorController;
 
 // Testing & Debug Routes (should be disabled in production)
 Route::prefix('debug')->group(function () {
@@ -111,23 +112,28 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         });
 
     // Patient Routes
-    Route::middleware('role:patient')
-        ->prefix('patient')
-        ->name('patient.')
-        ->group(function () {
-            Route::get('/dashboard', [PatientDashboardController::class, 'index'])->name('dashboard');
+    Route::middleware(['auth', 'role:patient'])->prefix('patient')->name('patient.')->group(function () {
+        Route::get('/dashboard', [PatientDashboardController::class, 'index'])->name('dashboard');
 
-            // Add these doctor routes
-            Route::controller(DoctorController::class)->prefix('doctors')->name('doctors.')->group(function () {
-                Route::get('/recommended', 'recommended')->name('recommended');
-                Route::get('/{doctor}', 'show')->name('show');
-            });
-
-            Route::resource('health-problems', HealthProblemController::class);
-            Route::resource('appointments', PatientAppointmentController::class);
-            Route::post('/ratings/{rating}/vote', [RatingController::class, 'vote'])->name('ratings.vote');
-            Route::post('/ratings', [RatingController::class, 'store'])->name('ratings.store');
-            Route::get('/doctors', [DoctorController::class, 'index'])->name('doctors.index');
-            Route::get('/doctors/{doctor}', [DoctorController::class, 'show'])->name('doctors.show');
+        // Add these doctor routes
+        Route::controller(DoctorController::class)->prefix('doctors')->name('doctors.')->group(function () {
+            Route::get('/recommended', 'recommended')->name('recommended');
+            Route::get('/{doctor}', 'show')->name('show');
         });
+
+        Route::resource('health-problems', HealthProblemController::class);
+        Route::resource('appointments', PatientAppointmentController::class);
+        Route::post('/ratings/{rating}/vote', [RatingController::class, 'vote'])->name('ratings.vote');
+        Route::post('/ratings', [RatingController::class, 'store'])->name('ratings.store');
+        Route::get('/doctors', [DoctorController::class, 'index'])->name('doctors.index');
+        Route::get('/doctors/{doctor}', [DoctorController::class, 'show'])->name('doctors.show');
+        Route::get('/symptom-checker', [DiseasePredictorController::class, 'index'])
+             ->name('disease-predictor.index');
+        Route::post('/symptom-checker/predict', [DiseasePredictorController::class, 'predict'])
+             ->name('disease-predictor.predict');
+        Route::post('/symptoms/check', [PatientDashboardController::class, 'checkSymptoms'])
+             ->name('symptoms.check');
+        Route::get('/specialists/{disease}', [PatientDashboardController::class, 'findSpecialists'])
+             ->name('specialists.find');
+    });
 });
