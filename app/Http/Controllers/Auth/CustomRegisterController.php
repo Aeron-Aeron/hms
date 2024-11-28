@@ -20,30 +20,29 @@ class CustomRegisterController extends Controller
 
     public function register(Request $request)
     {
-        // Dump the request data to see what's being received
-        \Log::info('Registration data:', $request->all());
-
-        // Validate the request
-        $rules = [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|in:admin,doctor,patient',
-        ];
-
-        // Add doctor-specific validation rules
-        if ($request->input('role') === 'doctor') {
-            $rules['specialization'] = 'required|string|max:255';
-            $rules['qualification'] = 'required|string|max:255';
-            $rules['experience'] = 'required|numeric|min:0';
-        }
-
-        $validated = $request->validate($rules);
+        Log::info('Registration attempt with data:', $request->all());
 
         try {
+            // Basic validation for all users
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|string|email|max:255|unique:users',
+                'password' => 'required|string|min:8|confirmed',
+                'role' => 'required|in:admin,doctor,patient',
+            ]);
+
+            // Additional validation for doctors
+            if ($request->role === 'doctor') {
+                $request->validate([
+                    'specialization' => 'required|string|max:255',
+                    'qualification' => 'required|string|max:255',
+                    'experience' => 'required|numeric|min:0',
+                ]);
+            }
+
             \DB::beginTransaction();
 
-            // Create the user
+            // Create user
             $user = User::create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
@@ -51,31 +50,32 @@ class CustomRegisterController extends Controller
                 'role' => $validated['role'],
             ]);
 
-            // If doctor, create the profile
+            // Create doctor profile if applicable
             if ($validated['role'] === 'doctor') {
                 DoctorProfile::create([
                     'user_id' => $user->id,
-                    'specialization' => $validated['specialization'],
-                    'qualification' => $validated['qualification'],
-                    'experience' => $validated['experience'],
+                    'specialization' => $request->specialization,
+                    'qualification' => $request->qualification,
+                    'experience' => $request->experience,
                 ]);
             }
 
             \DB::commit();
 
-            // Log in the user
+            event(new Registered($user));
             Auth::login($user);
 
             // Redirect based on role
-            return redirect()->route($user->role . '.dashboard')->with('success', 'Registration successful!');
+            return redirect()->route($user->role . '.dashboard')
+                           ->with('success', 'Registration successful!');
 
         } catch (\Exception $e) {
             \DB::rollBack();
-            \Log::error('Registration failed: ' . $e->getMessage());
+            Log::error('Registration failed: ' . $e->getMessage());
 
             return back()
                 ->withInput()
-                ->withErrors(['error' => 'Registration failed. Please try again.']);
+                ->withErrors(['error' => 'Registration failed: ' . $e->getMessage()]);
         }
     }
 }

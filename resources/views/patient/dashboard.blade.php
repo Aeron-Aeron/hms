@@ -34,7 +34,7 @@
                     <div class="p-6">
                         <h3 class="text-lg font-semibold mb-4">Symptom Checker</h3>
 
-                        <!-- Debug info - remove after testing -->
+                        <!-- Debug info -->
                         @if(empty($symptoms))
                             <div class="text-red-500 mb-4">No symptoms loaded</div>
                         @else
@@ -234,7 +234,7 @@
             checkbox.addEventListener('change', updateSelectedSymptoms);
         });
 
-        // Rest of your existing JavaScript...
+
         function toggleSymptomChecker() {
             const section = document.getElementById('symptomCheckerSection');
             section.classList.toggle('hidden');

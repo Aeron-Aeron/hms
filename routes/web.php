@@ -48,9 +48,8 @@ Route::get('/', [WelcomeController::class, 'index']);
 
 // Guest Routes
 Route::middleware('guest')->group(function () {
-    Route::get('register', [CustomRegisterController::class, 'showRegistrationForm'])
-        ->name('register');
-    Route::post('register', [CustomRegisterController::class, 'register']);
+    Route::get('register', [CustomRegisterController::class, 'showRegistrationForm'])->name('register');
+    Route::post('register', [CustomRegisterController::class, 'register'])->name('custom.register');
 });
 
 // Authenticated Routes
@@ -135,5 +134,11 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
              ->name('symptoms.check');
         Route::get('/specialists/{disease}', [PatientDashboardController::class, 'findSpecialists'])
              ->name('specialists.find');
+    });
+
+    Route::middleware(['auth'])->group(function () {
+        Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+        Route::get('/doctor/dashboard', [DoctorDashboardController::class, 'index'])->name('doctor.dashboard');
+        Route::get('/patient/dashboard', [PatientDashboardController::class, 'index'])->name('patient.dashboard');
     });
 });

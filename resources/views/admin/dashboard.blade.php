@@ -94,7 +94,29 @@
             <!-- Recent Users -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6">
-                    <h3 class="text-lg font-semibold mb-4">Recent Users</h3>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold">Users</h3>
+                        <div class="flex items-center space-x-4">
+                            <!-- View Toggle -->
+                            <select id="viewToggle" onchange="toggleView(this.value)"
+                                    class="text-sm rounded border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                <option value="recent" {{ request('view') !== 'all' ? 'selected' : '' }}>Recent Users</option>
+                                <option value="all" {{ request('view') === 'all' ? 'selected' : '' }}>All Users</option>
+                            </select>
+
+                            <!-- Search Box -->
+                            <form action="{{ route('admin.dashboard') }}" method="GET" class="flex items-center">
+                                <input type="hidden" name="view" value="{{ request('view', 'recent') }}">
+                                <input type="text" name="search" value="{{ request('search') }}"
+                                       placeholder="Search users..."
+                                       class="text-sm rounded border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                <button type="submit" class="ml-2 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+                                    Search
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead>
@@ -141,8 +163,23 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Pagination -->
+                    <div class="mt-4">
+                        @if(request('view') === 'all')
+                            {{ $users->links() }}
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </x-app-layout>
+
+<script>
+function toggleView(value) {
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.set('view', value);
+    window.location.href = currentUrl.toString();
+}
+</script>

@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $stats = [
             'total_doctors' => User::where('role', 'doctor')->count(),
@@ -23,9 +23,22 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        $users = User::latest()
-            ->take(5)
-            ->get();
+        $usersQuery = User::query();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $usersQuery->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('role', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->view !== 'all') {
+            $users = $usersQuery->latest()->take(5)->get();
+        } else {
+            $users = $usersQuery->latest()->paginate(10)->withQueryString();
+        }
 
         return view('admin.dashboard', compact('stats', 'recent_appointments', 'users'));
     }
