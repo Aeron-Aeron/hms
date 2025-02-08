@@ -15,6 +15,7 @@ return new class extends Migration
             $table->text('bio')->nullable();
             $table->string('education')->nullable();  // Add this line
             $table->integer('experience_years')->nullable();  // Add this line
+            $table->json('diseases')->nullable(); // Add this line
             $table->timestamps();
         });
     }

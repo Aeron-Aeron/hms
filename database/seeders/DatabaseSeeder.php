@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
             DoctorProfilesTableSeeder::class,
             AppointmentsTableSeeder::class,
             DoctorRatingsTableSeeder::class,
+            DoctorSpecializationSeeder::class,
         ]);
     }
 }

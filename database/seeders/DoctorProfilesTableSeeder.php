@@ -8,6 +8,10 @@ use App\Models\User;
 
 class DoctorProfilesTableSeeder extends Seeder
 {
+    protected $casts = [
+        'diseases' => 'array'
+    ];
+
     public function run()
     {
         $specializations = [

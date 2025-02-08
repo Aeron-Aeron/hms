@@ -115,15 +115,71 @@ class PatientDashboardController extends Controller
 
     public function findSpecialists($diseaseName)
     {
-        // Find doctors specialized in treating this disease
+        // Get mapped specializations for the disease
+        $specializations = $this->getSpecializationsForDisease($diseaseName);
+
+        // Find doctors with matching specializations
         $doctors = User::where('role', 'doctor')
-            ->whereHas('doctorProfile', function($query) use ($diseaseName) {
-                $query->where('specialization', 'LIKE', '%' . $diseaseName . '%');
+            ->whereHas('doctorProfile', function($query) use ($specializations) {
+                $query->where(function($q) use ($specializations) {
+                    foreach ($specializations as $specialization) {
+                        $q->orWhere('specialization', 'LIKE', '%' . $specialization . '%');
+                    }
+                });
             })
             ->with(['doctorProfile', 'ratings'])
             ->withAvg('ratings', 'rating')
+            ->orderByDesc('ratings_avg_rating')
             ->get();
 
         return view('patient.specialists', compact('doctors', 'diseaseName'));
+    }
+
+    private function getSpecializationsForDisease($diseaseName)
+    {
+        // Disease to specialization mapping
+        $diseaseSpecializations = [
+            'Fungal infection' => ['Dermatology', 'Infectious Disease'],
+            'GERD' => ['Gastroenterology'],
+            'Chronic cholestasis' => ['Gastroenterology', 'Hepatology'],
+            'Drug Reaction' => ['Allergy and Immunology', 'Dermatology'],
+            'Peptic ulcer disease' => ['Gastroenterology'],
+            'AIDS' => ['Infectious Disease', 'Internal Medicine'],
+            'Diabetes' => ['Endocrinology', 'Internal Medicine'],
+            'Gastroenteritis' => ['Gastroenterology'],
+            'Bronchial Asthma' => ['Pulmonology', 'Allergy and Immunology'],
+            'Hypertension' => ['Cardiology', 'Internal Medicine'],
+            'Migraine' => ['Neurology'],
+            'Cervical spondylosis' => ['Orthopedics', 'Neurology'],
+            'Paralysis (brain hemorrhage)' => ['Neurology', 'Neurosurgery'],
+            'Jaundice' => ['Gastroenterology', 'Hepatology'],
+            'Malaria' => ['Infectious Disease'],
+            'Chicken pox' => ['Infectious Disease', 'Dermatology'],
+            'Dengue' => ['Infectious Disease'],
+            'Typhoid' => ['Infectious Disease'],
+            'Hepatitis A' => ['Gastroenterology', 'Hepatology'],
+            'Hepatitis B' => ['Gastroenterology', 'Hepatology'],
+            'Hepatitis C' => ['Gastroenterology', 'Hepatology'],
+            'Hepatitis D' => ['Gastroenterology', 'Hepatology'],
+            'Hepatitis E' => ['Gastroenterology', 'Hepatology'],
+            'Alcoholic hepatitis' => ['Gastroenterology', 'Hepatology'],
+            'Tuberculosis' => ['Pulmonology', 'Infectious Disease'],
+            'Common Cold' => ['General Medicine', 'ENT'],
+            'Pneumonia' => ['Pulmonology', 'Infectious Disease'],
+            'Dimorphic hemmorhoids(piles)' => ['Gastroenterology', 'Colorectal Surgery'],
+            'Heart attack' => ['Cardiology', 'Emergency Medicine'],
+            'Varicose veins' => ['Vascular Surgery', 'Cardiovascular'],
+            'Hypothyroidism' => ['Endocrinology'],
+            'Hypoglycemia' => ['Endocrinology'],
+            'Osteoarthritis' => ['Orthopedics', 'Rheumatology'],
+            'Arthritis' => ['Orthopedics', 'Rheumatology'],
+            '(vertigo) Paroymsal Positional Vertigo' => ['ENT', 'Neurology'],
+            'Acne' => ['Dermatology'],
+            'Urinary tract infection' => ['Urology', 'Internal Medicine'],
+            'Psoriasis' => ['Dermatology'],
+            'Impetigo' => ['Dermatology', 'Infectious Disease']
+        ];
+
+        return $diseaseSpecializations[$diseaseName] ?? ['General Medicine', 'Internal Medicine'];
     }
 }

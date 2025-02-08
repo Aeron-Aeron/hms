@@ -17,6 +17,10 @@ class DoctorProfile extends Model
         'bio',
     ];
 
+    protected $casts = [
+        'diseases' => 'array'
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);

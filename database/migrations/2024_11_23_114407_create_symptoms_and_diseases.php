@@ -9,33 +9,31 @@ return new class extends Migration
 {
     public function up()
     {
-        // Create symptoms table if it doesn't exist
-        if (!Schema::hasTable('symptoms')) {
-            Schema::create('symptoms', function (Blueprint $table) {
-                $table->id();
-                $table->string('name')->unique();
-                $table->timestamps();
-            });
-        }
+        Schema::dropIfExists('disease_symptom');
+        Schema::dropIfExists('diseases');
+        Schema::dropIfExists('symptoms');
 
-        // Create diseases table if it doesn't exist
-        if (!Schema::hasTable('diseases')) {
-            Schema::create('diseases', function (Blueprint $table) {
-                $table->id();
-                $table->string('name')->unique();
-                $table->timestamps();
-            });
-        }
+        // Create symptoms table
+        Schema::create('symptoms', function (Blueprint $table) {
+            $table->id();
+            $table->string('name')->unique();
+            $table->timestamps();
+        });
 
-        // Create pivot table if it doesn't exist
-        if (!Schema::hasTable('disease_symptom')) {
-            Schema::create('disease_symptom', function (Blueprint $table) {
-                $table->id();
-                $table->foreignId('disease_id')->constrained()->onDelete('cascade');
-                $table->foreignId('symptom_id')->constrained()->onDelete('cascade');
-                $table->timestamps();
-            });
-        }
+        // Create diseases table
+        Schema::create('diseases', function (Blueprint $table) {
+            $table->id();
+            $table->string('name')->unique();
+            $table->timestamps();
+        });
+
+        // Create pivot table
+        Schema::create('disease_symptom', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('disease_id')->constrained()->onDelete('cascade');
+            $table->foreignId('symptom_id')->constrained()->onDelete('cascade');
+            $table->timestamps();
+        });
 
         // Read the CSV and populate the database
         $csvFile = storage_path('app/symtoms_df.csv');

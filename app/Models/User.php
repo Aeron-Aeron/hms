@@ -29,7 +29,11 @@ class User extends Authenticatable
 
     public function doctorProfile()
     {
-        return $this->hasOne(DoctorProfile::class);
+        return $this->hasOne(DoctorProfile::class)->withDefault([
+            'specialization' => 'General Medicine',
+            'experience_years' => 0,
+            'bio' => 'Profile not yet updated'
+        ]);
     }
 
     public function appointments()

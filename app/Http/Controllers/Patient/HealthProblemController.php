@@ -145,27 +145,42 @@ class HealthProblemController extends Controller
 
     private function mapSymptomsToSpecializations(array $symptoms)
     {
-        // Basic mapping of symptoms to medical specializations
+        // Enhanced mapping based on the disease dataset
         $mapping = [
-            'Chest pain' => ['Cardiology'],
-            'Shortness of breath' => ['Pulmonology', 'Cardiology'],
-            'Headache' => ['Neurology'],
-            'Fever' => ['Internal Medicine', 'General Practice'],
-            'Cough' => ['Pulmonology', 'General Practice'],
-            'Sore throat' => ['ENT', 'General Practice'],
-            'Body ache' => ['Orthopedics', 'Rheumatology'],
-            'Nausea' => ['Gastroenterology', 'Internal Medicine'],
-            'Dizziness' => ['Neurology', 'ENT'],
-            'Fatigue' => ['Internal Medicine', 'Endocrinology']
+            // Common symptoms to specialties mapping
+            'fever' => ['Internal Medicine', 'Infectious Disease'],
+            'cough' => ['Pulmonology', 'ENT'],
+            'headache' => ['Neurology', 'General Medicine'],
+            'chest_pain' => ['Cardiology', 'Emergency Medicine'],
+            'skin_rash' => ['Dermatology', 'Allergy and Immunology'],
+            'fatigue' => ['Internal Medicine', 'Endocrinology'],
+            'joint_pain' => ['Rheumatology', 'Orthopedics'],
+            'abdominal_pain' => ['Gastroenterology', 'General Surgery'],
+            
+            // Disease-specific mappings
+            'Fungal infection' => ['Dermatology', 'Infectious Disease'],
+            'GERD' => ['Gastroenterology'],
+            'Peptic ulcer diseae' => ['Gastroenterology'],
+            'AIDS' => ['Infectious Disease', 'Internal Medicine'],
+            'Diabetes' => ['Endocrinology'],
+            'Bronchial Asthma' => ['Pulmonology'],
+            'Hypertension' => ['Cardiology'],
+            'Migraine' => ['Neurology'],
+            'Cervical spondylosis' => ['Orthopedics', 'Neurology'],
+            'Paralysis' => ['Neurology'],
+            'Jaundice' => ['Gastroenterology', 'Hepatology'],
+            'Malaria' => ['Infectious Disease'],
+            'Hepatitis' => ['Gastroenterology', 'Hepatology']
         ];
-
+        
         $specializations = [];
         foreach ($symptoms as $symptom) {
-            if (isset($mapping[$symptom])) {
-                $specializations = array_merge($specializations, $mapping[$symptom]);
+            $normalizedSymptom = strtolower(trim($symptom));
+            if (isset($mapping[$normalizedSymptom])) {
+                $specializations = array_merge($specializations, $mapping[$normalizedSymptom]);
             }
         }
-
+        
         return array_unique($specializations);
     }
 }
