@@ -28,6 +28,27 @@
         </button>
       </div>
 
+      <!-- Recommended Doctors (after creating a health problem) -->
+      @if(session()->has('recommendedDoctors'))
+      <div class="mb-8">
+        <h3 class="text-lg font-semibold mb-4">Recommended Doctors for your reported problem</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          @foreach(session('recommendedDoctors') as $doctor)
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+              <div class="p-6">
+                <div class="font-semibold text-lg mb-2">Dr. {{ $doctor->name }}</div>
+                <div class="text-gray-600 mb-2">{{ $doctor->doctorProfile->specialization ?? '' }}</div>
+                <a href="{{ route('patient.doctors.show', $doctor) }}"
+                   class="inline-block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                  View Profile
+                </a>
+              </div>
+            </div>
+          @endforeach
+        </div>
+      </div>
+      @endif
+
       <!-- Symptom Checker Section (Hidden by default) -->
       <div id="symptomCheckerSection" class="mb-8 hidden">
         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">

@@ -39,6 +39,12 @@ class HealthProblemController extends Controller
 
     public function store(Request $request)
     {
+        // Normalize symptoms: accept comma-separated string or array
+        if (is_string($request->input('symptoms'))) {
+            $parsed = array_filter(array_map('trim', explode(',', $request->input('symptoms'))));
+            $request->merge(['symptoms' => array_values($parsed)]);
+        }
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -54,8 +60,9 @@ class HealthProblemController extends Controller
         // Find recommended doctors based on symptoms
         $recommendedDoctors = $this->findRecommendedDoctors($validated['symptoms']);
 
+        // Redirect to patient dashboard so the new problem appears in Recent Health Problems
         return redirect()
-            ->route('patient.doctors.recommended')
+            ->route('patient.dashboard')
             ->with('success', 'Health problem recorded successfully.')
             ->with('recommendedDoctors', $recommendedDoctors);
     }
@@ -97,6 +104,12 @@ class HealthProblemController extends Controller
     {
         if ($healthProblem->user_id !== auth()->id()) {
             abort(403);
+        }
+
+        // Normalize symptoms input for update as well
+        if (is_string($request->input('symptoms'))) {
+            $parsed = array_filter(array_map('trim', explode(',', $request->input('symptoms'))));
+            $request->merge(['symptoms' => array_values($parsed)]);
         }
 
         $validated = $request->validate([
