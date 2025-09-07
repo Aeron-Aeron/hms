@@ -35,6 +35,7 @@ class DashboardController extends Controller
         $recommendedDoctors = User::where('role', 'doctor')
             ->whereHas('doctorProfile')
             ->withAvg('ratings', 'rating')
+            ->withCount('ratings')
             ->orderByDesc('ratings_avg_rating')
             ->take(3)
             ->get();

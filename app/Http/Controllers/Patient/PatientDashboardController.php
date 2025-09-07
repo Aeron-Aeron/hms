@@ -29,8 +29,9 @@ class PatientDashboardController extends Controller
 
         // Get featured doctors (those with highest ratings)
         $featuredDoctors = User::where('role', 'doctor')
-            ->with(['doctorProfile', 'ratings'])
+            ->with('doctorProfile')
             ->withAvg('ratings', 'rating')
+            ->withCount('ratings')
             ->withCount('appointments')
             ->orderByDesc('ratings_avg_rating')
             ->take(4)

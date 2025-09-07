@@ -54,8 +54,13 @@ class DoctorController extends Controller
             abort(404);
         }
 
-        return view('patient.doctors.show', [
-            'doctor' => $doctor->load(['doctorProfile', 'ratings'])
-        ]);
+    $doctor->load(['doctorProfile', 'ratings.reviewVotes', 'ratings.patient']);
+
+    // Force-evaluate and attach computed rating attributes to avoid page mismatches
+    $doctor->overall_rating = $doctor->overall_rating; // arithmetic avg
+    $doctor->weighted_rating = $doctor->weighted_rating; // weighted avg
+    $doctor->ratings_count = $doctor->ratings_count;
+
+    return view('patient.doctors.show', ['doctor' => $doctor]);
     }
 }

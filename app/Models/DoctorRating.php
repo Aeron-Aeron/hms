@@ -41,17 +41,26 @@ class DoctorRating extends Model
         return $this->belongsTo(Appointment::class);
     }
 
+    public function reviewVotes()
+    {
+        return $this->hasMany(\App\Models\ReviewVote::class, 'doctor_rating_id');
+    }
+
     public function calculateWeightedRating()
     {
-        $baseRating = $this->rating;
-        $helpfulnessScore = $this->helpful_votes / max($this->total_votes, 1);
-        $verificationBonus = $this->verified_appointment ? 0.2 : 0;
-        $recencyWeight = $this->calculateRecencyWeight();
+    // Weights (must sum to 1): baseRating 0.6, helpfulness 0.2, verification 0.1, recency 0.1
+    $baseRating = $this->rating; // 1-5
+    $helpfulnessScore = $this->helpful_votes / max($this->total_votes, 1); // 0-1
+    $recencyWeight = $this->calculateRecencyWeight(); // 0-1
 
-        return ($baseRating * 0.6) +
-               ($helpfulnessScore * 0.2) +
-               ($verificationBonus) +
-               ($recencyWeight * 0.2);
+    // Map 0-1 components to 1-5 scale by multiplying by 5 where appropriate
+    $weighted = ($baseRating * 0.6) +
+           ($helpfulnessScore * 5 * 0.2) +
+           (($this->verified_appointment ? 5 : 0) * 0.1) +
+           ($recencyWeight * 5 * 0.1);
+
+    // Ensure value is within 0-5 and return
+    return max(0, min(5, $weighted));
     }
 
     private function calculateRecencyWeight()

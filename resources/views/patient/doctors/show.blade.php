@@ -29,6 +29,12 @@
                   <span class="ml-2">{{ $doctor->doctorProfile->specialization }}</span>
                 </div>
 
+                <div class="mt-2">
+                  <span class="text-yellow-400 mr-1">⭐</span>
+                  <span class="font-medium">{{ number_format($doctor->overall_rating ?? 0, 1) }}</span>
+                  <span class="text-sm text-gray-500">({{ $doctor->ratings_count ?? 0 }} reviews)</span>
+                </div>
+
                 @if($doctor->doctorProfile->bio)
                 <div>
                   <span class="font-medium">Bio:</span>
@@ -109,12 +115,21 @@
 
           <!-- Helpful Votes -->
           @if(auth()->id() !== $rating->patient_id)
-          <form action="{{ route('patient.ratings.vote', $rating) }}" method="POST" class="flex items-center">
-            @csrf
-            <button type="submit" class="text-sm text-gray-500 hover:text-gray-700">
-              👍 Helpful ({{ $rating->helpful_votes }})
-            </button>
-          </form>
+            @php
+              $userVoted = $rating->reviewVotes->contains('user_id', auth()->id());
+            @endphp
+            @if($userVoted)
+              <button class="text-sm text-green-600 font-semibold flex items-center" disabled>
+                👍 Helpful ({{ $rating->helpful_votes }})
+              </button>
+            @else
+              <form action="{{ route('patient.ratings.vote', $rating) }}" method="POST" class="flex items-center">
+                @csrf
+                <button type="submit" class="text-sm text-gray-500 hover:text-gray-700">
+                  👍 Helpful ({{ $rating->helpful_votes }})
+                </button>
+              </form>
+            @endif
           @endif
         </div>
       </div>

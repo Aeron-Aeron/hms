@@ -42,7 +42,7 @@
                                 </div>
                                 <div class="flex items-center">
                                     <span class="text-yellow-400 mr-1">⭐</span>
-                                    <span>{{ number_format($doctor->ratings_avg_rating ?? 0, 1) }}</span>
+                                    <span>{{ number_format($doctor->overall_rating ?? 0, 1) }}</span>
                                 </div>
                             </div>
 

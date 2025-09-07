@@ -10,7 +10,9 @@ class DoctorSearchController extends Controller
     public function search(Request $request)
     {
         $query = User::where('role', 'doctor')
-            ->with(['doctorProfile', 'ratings']);
+            ->with(['doctorProfile'])
+            ->withAvg('ratings', 'rating')
+            ->withCount('ratings');
 
         if ($request->specialization) {
             $query->whereHas('doctorProfile', function ($q) use ($request) {
@@ -19,9 +21,9 @@ class DoctorSearchController extends Controller
         }
 
         if ($request->rating) {
-            $query->whereHas('ratings', function ($q) use ($request) {
-                $q->havingRaw('AVG(rating) >= ?', [$request->rating]);
-            });
+            // Use a subquery to filter by average rating to keep compatibility with pagination
+            $min = (float) $request->rating;
+            $query->whereRaw('(SELECT COALESCE(AVG(rating),0) FROM doctor_ratings WHERE doctor_ratings.doctor_id = users.id) >= ?', [$min]);
         }
 
         if ($request->available_day) {

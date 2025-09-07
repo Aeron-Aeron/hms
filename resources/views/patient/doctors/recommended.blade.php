@@ -20,7 +20,7 @@
                                 <div class="flex items-center mb-4">
                                     <div class="text-yellow-400">
                                         @for($i = 1; $i <= 5; $i++)
-                                            @if($i <= round($doctor->ratings_avg_rating))
+                                            @if($i <= round($doctor->overall_rating))
                                                 ★
                                             @else
                                                 ☆
@@ -28,7 +28,7 @@
                                         @endfor
                                     </div>
                                     <span class="text-sm text-gray-600 ml-2">
-                                        {{ number_format($doctor->ratings_avg_rating, 1) }} / 5.0
+                                        {{ number_format($doctor->overall_rating, 1) }} / 5.0
                                     </span>
                                 </div>
                                 <div class="flex justify-between items-center">

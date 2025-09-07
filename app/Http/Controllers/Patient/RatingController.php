@@ -53,8 +53,23 @@ class RatingController extends Controller
             return redirect()->back()->with('error', 'You cannot vote on your own review.');
         }
 
-        // Check if user has already voted
-        // In a real app, you'd want to track this in a separate table
+        // Check if user has already voted on this rating
+        $existing = \App\Models\ReviewVote::where('doctor_rating_id', $rating->id)
+            ->where('user_id', auth()->id())
+            ->first();
+
+        if ($existing) {
+            return redirect()->back()->with('error', 'You have already voted on this review.');
+        }
+
+        // Record the vote
+        \App\Models\ReviewVote::create([
+            'doctor_rating_id' => $rating->id,
+            'user_id' => auth()->id(),
+            'is_helpful' => true,
+        ]);
+
+        // Update counters on rating
         $rating->increment('helpful_votes');
         $rating->increment('total_votes');
 

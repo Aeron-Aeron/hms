@@ -59,7 +59,7 @@
                     <div class="flex items-center">
                         <div class="flex text-yellow-400">
                             @for($i = 1; $i <= 5; $i++)
-                                @if($i <= $doctor->ratings->avg('rating'))
+                                @if($i <= $doctor->overall_rating)
                                     <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
                                         <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
                                     </svg>
@@ -71,7 +71,7 @@
                             @endfor
                         </div>
                         <span class="ml-2 text-sm text-gray-600">
-                            ({{ $doctor->ratings->count() }} reviews)
+                            ({{ $doctor->ratings_count ?? 0 }} reviews)
                         </span>
                     </div>
                     <p class="mt-2 text-sm text-gray-600">{{ Str::limit($doctor->doctorProfile->bio, 100) }}</p>

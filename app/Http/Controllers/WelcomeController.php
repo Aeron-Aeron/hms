@@ -11,8 +11,9 @@ class WelcomeController extends Controller
     public function index()
     {
         $featuredDoctors = User::where('role', 'doctor')
-            ->with(['doctorProfile', 'ratings'])
+            ->with('doctorProfile')
             ->withAvg('ratings', 'rating')
+            ->withCount('ratings')
             ->orderByDesc('ratings_avg_rating')
             ->take(3)
             ->get();

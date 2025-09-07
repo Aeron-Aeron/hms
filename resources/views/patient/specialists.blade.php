@@ -30,7 +30,7 @@
                                             <div class="mt-2 flex items-center">
                                                 <span class="text-yellow-400">⭐</span>
                                                 <span class="ml-1 text-gray-600">
-                                                    {{ number_format($doctor->ratings_avg_rating ?? 0, 1) }}
+                                                    {{ number_format($doctor->overall_rating ?? 0, 1) }}
                                                 </span>
                                             </div>
                                         </div>
@@ -64,7 +64,7 @@
                                         <div class="mt-2 flex items-center">
                                             <span class="text-yellow-400">⭐</span>
                                             <span class="ml-1 text-gray-600">
-                                                {{ number_format($doctor->ratings_avg_rating ?? 0, 1) }}
+                                                {{ number_format($doctor->overall_rating ?? 0, 1) }}
                                             </span>
                                         </div>
                                     </div>

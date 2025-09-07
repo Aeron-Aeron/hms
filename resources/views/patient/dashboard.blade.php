@@ -105,8 +105,8 @@
             <div class="p-6">
               <div class="font-semibold text-lg mb-2">Dr. {{ $doctor->name }}</div>
               <div class="text-gray-600 mb-2">{{ $doctor->doctorProfile->specialization }}</div>
-              <div class="text-sm text-gray-500 mb-4">
-                Rating: {{ number_format($doctor->ratings_avg_rating ?? 0, 1) }} ⭐
+                 <div class="text-sm text-gray-500 mb-4">
+                   Rating: {{ number_format($doctor->overall_rating ?? 0, 1) }} ⭐
               </div>
               <a href="{{ route('patient.doctors.show', $doctor) }}"
                 class="inline-block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
