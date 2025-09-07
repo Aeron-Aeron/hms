@@ -5,7 +5,7 @@
                 {{ __('Appointment Details') }}
             </h2>
             <a href="{{ route('patient.appointments.index') }}"
-               class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center">
+                class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center">
                 <span>← Back to Appointments</span>
             </a>
         </div>
@@ -25,9 +25,9 @@
                             Status: {{ ucfirst($appointment->status) }}
                         </div>
                         @if($appointment->status === 'rescheduled')
-                            <div class="text-sm">
-                                New Proposed Time: {{ $appointment->proposed_time->format('M d, Y h:i A') }}
-                            </div>
+                        <div class="text-sm">
+                            New Proposed Time: {{ $appointment->proposed_time->format('M d, Y h:i A') }}
+                        </div>
                         @endif
                     </div>
 
@@ -49,16 +49,16 @@
                                     <span class="ml-2">{{ $appointment->scheduled_time->format('M d, Y h:i A') }}</span>
                                 </div>
                                 @if($appointment->patient_notes)
-                                    <div>
-                                        <span class="font-medium">Your Notes:</span>
-                                        <p class="mt-1 text-gray-600">{{ $appointment->patient_notes }}</p>
-                                    </div>
+                                <div>
+                                    <span class="font-medium">Your Notes:</span>
+                                    <p class="mt-1 text-gray-600">{{ $appointment->patient_notes }}</p>
+                                </div>
                                 @endif
                                 @if($appointment->doctor_notes)
-                                    <div>
-                                        <span class="font-medium">Doctor's Notes:</span>
-                                        <p class="mt-1 text-gray-600">{{ $appointment->doctor_notes }}</p>
-                                    </div>
+                                <div>
+                                    <span class="font-medium">Doctor's Notes:</span>
+                                    <p class="mt-1 text-gray-600">{{ $appointment->doctor_notes }}</p>
+                                </div>
                                 @endif
                             </div>
                         </div>
@@ -67,36 +67,36 @@
                             <h3 class="text-lg font-semibold mb-4">Actions</h3>
                             <div class="space-y-3">
                                 @if($appointment->status === 'pending')
-                                    <form action="{{ route('patient.appointments.destroy', $appointment) }}"
-                                          method="POST"
-                                          onsubmit="return confirm('Are you sure you want to cancel this appointment?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                                class="w-full bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
-                                            Cancel Appointment
-                                        </button>
-                                    </form>
+                                <form action="{{ route('patient.appointments.destroy', $appointment) }}"
+                                    method="POST"
+                                    onsubmit="return confirm('Are you sure you want to cancel this appointment?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit"
+                                        class="w-full bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                                        Cancel Appointment
+                                    </button>
+                                </form>
                                 @endif
 
                                 @if($appointment->status === 'rescheduled')
-                                    <form action="{{ route('patient.appointments.update', $appointment) }}"
-                                          method="POST">
-                                        @csrf
-                                        @method('PUT')
-                                        <input type="hidden" name="accept_reschedule" value="1">
-                                        <button type="submit"
-                                                class="w-full bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-                                            Accept New Time
-                                        </button>
-                                    </form>
+                                <form action="{{ route('patient.appointments.update', $appointment) }}"
+                                    method="POST">
+                                    @csrf
+                                    @method('PUT')
+                                    <input type="hidden" name="accept_reschedule" value="1">
+                                    <button type="submit"
+                                        class="w-full bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                                        Accept New Time
+                                    </button>
+                                </form>
                                 @endif
 
                                 @if($appointment->status === 'completed')
-                                    <a href="{{ route('patient.appointments.create', ['doctor' => $appointment->doctor_id]) }}"
-                                       class="block text-center bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                                        Book Another Appointment
-                                    </a>
+                                <a href="{{ route('patient.appointments.create', ['doctor' => $appointment->doctor_id]) }}"
+                                    class="block text-center bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                                    Book Another Appointment
+                                </a>
                                 @endif
                             </div>
                         </div>

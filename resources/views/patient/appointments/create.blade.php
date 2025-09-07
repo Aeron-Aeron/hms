@@ -15,13 +15,13 @@
                         <!-- Doctor Selection -->
                         <div class="mb-4">
                             <label for="doctor_id" class="block text-sm font-medium text-gray-700">Select Doctor</label>
-                            <select name="doctor_id" id="doctor_id" required
+                            <select name="doctor_id" id="doctor_id" required v
                                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 <option value="">Choose a doctor</option>
                                 @foreach($doctors as $doctor)
                                     <option value="{{ $doctor->id }}"
-                                            {{ old('doctor_id') == $doctor->id ? 'selected' : '' }}>
-                                        Dr. {{ $doctor->name }} - {{ $doctor->doctorProfile->specialization }}
+                                    {{ (old('doctor_id', request('doctor_id')) == $doctor->id) ? 'selected' : '' }}>
+                                      Dr. {{ $doctor->name }} - {{ $doctor->doctorProfile->specialization }}
                                     </option>
                                 @endforeach
                             </select>
