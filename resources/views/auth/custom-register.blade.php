@@ -38,6 +38,30 @@
                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
 
+                <!-- Phone -->
+                <div class="mb-4">
+                    <label for="phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                    <input type="tel" name="phone" id="phone" value="{{ old('phone') }}" required
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                           placeholder="e.g. 0712345678">
+                </div>
+
+                <!-- Date of Birth -->
+                <div class="mb-4">
+                    <label for="date_of_birth" class="block text-sm font-medium text-gray-700">Date of Birth</label>
+                    <input type="date" name="date_of_birth" id="date_of_birth" value="{{ old('date_of_birth') }}" required
+                           max="{{ now()->toDateString() }}" min="1900-01-01"
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+
+                <!-- Age -->
+                <div class="mb-4">
+                    <label for="age" class="block text-sm font-medium text-gray-700">Age</label>
+                    <input type="text" id="age" value="{{ old('date_of_birth') ? \Carbon\Carbon::parse(old('date_of_birth'))->age : '' }}" readonly
+                           class="mt-1 block w-full rounded-md border-gray-200 bg-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                           placeholder="Auto-calculated">
+                </div>
+
                 <!-- Role -->
                 <div class="mb-4">
                     <label for="role" class="block text-sm font-medium text-gray-700">Register as</label>
@@ -104,6 +128,8 @@
             const roleSelect = document.getElementById('role');
             const doctorFields = document.getElementById('doctorFields');
             const doctorInputs = ['specialization', 'qualification', 'experience'];
+            const dobInput = document.getElementById('date_of_birth');
+            const ageField = document.getElementById('age');
 
             function toggleDoctorFields() {
                 const isDoctor = roleSelect.value === 'doctor';
@@ -118,11 +144,38 @@
                 });
             }
 
+            function calculateAge(dateString) {
+                const dob = new Date(dateString);
+                if (Number.isNaN(dob.getTime())) {
+                    return '';
+                }
+
+                const today = new Date();
+                let age = today.getFullYear() - dob.getFullYear();
+                const monthDiff = today.getMonth() - dob.getMonth();
+
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+                    age--;
+                }
+
+                return age >= 0 ? age : '';
+            }
+
+            function updateAge() {
+                ageField.value = calculateAge(dobInput.value);
+            }
+
             // Initial toggle
             toggleDoctorFields();
+            updateAge();
 
             // Toggle on role change
             roleSelect.addEventListener('change', toggleDoctorFields);
+
+            if (dobInput) {
+                dobInput.addEventListener('change', updateAge);
+                dobInput.addEventListener('keyup', updateAge);
+            }
 
             // Form submission handling
             form.addEventListener('submit', function(e) {

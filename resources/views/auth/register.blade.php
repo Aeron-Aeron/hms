@@ -16,13 +16,33 @@
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
+        <!-- Phone Number -->
+        <div class="mt-4">
+            <x-input-label for="phone" :value="__('Phone Number')" />
+            <x-text-input id="phone" class="block mt-1 w-full" type="tel" name="phone" :value="old('phone')" required autocomplete="tel" />
+            <x-input-error :messages="$errors->get('phone')" class="mt-2" />
+        </div>
+
+        <!-- Date of Birth -->
+        <div class="mt-4">
+            <x-input-label for="date_of_birth" :value="__('Date of Birth')" />
+            <x-text-input id="date_of_birth" class="block mt-1 w-full" type="date" name="date_of_birth" :value="old('date_of_birth')" required max="{{ now()->toDateString() }}" min="1900-01-01" />
+            <x-input-error :messages="$errors->get('date_of_birth')" class="mt-2" />
+        </div>
+
+        <!-- Age -->
+        <div class="mt-4">
+            <x-input-label for="age" :value="__('Age')" />
+            <x-text-input id="age" class="block mt-1 w-full bg-gray-100" type="text" :value="old('date_of_birth') ? \Carbon\Carbon::parse(old('date_of_birth'))->age : ''" readonly />
+        </div>
+
         <!-- Role Selection -->
         <div class="mt-4">
             <x-input-label for="role" :value="__('Register as')" />
             <select id="role" name="role" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                <option value="patient">Patient</option>
-                <option value="doctor">Doctor</option>
-                <option value="admin">Admin</option>
+                <option value="patient" {{ old('role', 'patient') === 'patient' ? 'selected' : '' }}>Patient</option>
+                <option value="doctor" {{ old('role') === 'doctor' ? 'selected' : '' }}>Doctor</option>
+                <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Admin</option>
             </select>
             <x-input-error :messages="$errors->get('role')" class="mt-2" />
         </div>
@@ -60,4 +80,42 @@
             </x-primary-button>
         </div>
     </form>
+
+    <script>
+        (function () {
+            const dobInput = document.getElementById('date_of_birth');
+            const ageInput = document.getElementById('age');
+
+            function calculateAge(dateString) {
+                const dob = new Date(dateString);
+                if (Number.isNaN(dob.getTime())) {
+                    return '';
+                }
+
+                const today = new Date();
+                let age = today.getFullYear() - dob.getFullYear();
+                const monthDiff = today.getMonth() - dob.getMonth();
+
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+                    age--;
+                }
+
+                return age >= 0 ? age : '';
+            }
+
+            function updateAge() {
+                if (!dobInput || !ageInput) {
+                    return;
+                }
+
+                ageInput.value = calculateAge(dobInput.value);
+            }
+
+            if (dobInput) {
+                dobInput.addEventListener('change', updateAge);
+                dobInput.addEventListener('keyup', updateAge);
+                updateAge();
+            }
+        })();
+    </script>
 </x-guest-layout>

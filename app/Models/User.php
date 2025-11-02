@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -14,7 +15,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role'
+        'role',
+        'phone',
+        'date_of_birth',
     ];
 
     protected $hidden = [
@@ -25,7 +28,21 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'date_of_birth' => 'date',
     ];
+
+    protected $appends = [
+        'age',
+    ];
+
+    public function getAgeAttribute(): ?int
+    {
+        if (! $this->date_of_birth) {
+            return null;
+        }
+
+        return Carbon::parse($this->date_of_birth)->age;
+    }
 
     public function doctorProfile()
     {

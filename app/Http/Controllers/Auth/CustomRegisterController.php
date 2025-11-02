@@ -27,6 +27,8 @@ class CustomRegisterController extends Controller
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|string|email|max:255|unique:users',
+                'phone' => 'required|string|max:20|unique:users,phone',
+                'date_of_birth' => 'required|date|before_or_equal:today|after_or_equal:1900-01-01',
                 'password' => 'required|string|min:8|confirmed',
                 'role' => 'required|in:admin,doctor,patient',
             ]);
@@ -46,6 +48,8 @@ class CustomRegisterController extends Controller
             $user = User::create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
+                'phone' => $validated['phone'],
+                'date_of_birth' => $validated['date_of_birth'],
                 'password' => Hash::make($validated['password']),
                 'role' => $validated['role'],
             ]);
