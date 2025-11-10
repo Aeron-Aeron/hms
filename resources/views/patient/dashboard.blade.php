@@ -101,6 +101,54 @@
                 </div>
               </div>
 
+              <div class="mt-6 border-t pt-4">
+                <h4 class="text-base font-semibold text-gray-800 mb-2">Optional Vitals (if known)</h4>
+                <p class="text-sm text-gray-500 mb-4">Providing vitals helps doctors understand your current state, but you can leave these blank.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label for="blood_pressure_systolic" class="block text-sm font-medium text-gray-700">Blood Pressure (mmHg)</label>
+                    <div class="mt-1 flex items-center space-x-2">
+                      <input type="number" name="blood_pressure_systolic" id="blood_pressure_systolic"
+                             min="50" max="250" step="1"
+                             class="w-20 rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                             placeholder="Sys" />
+                      <span class="text-gray-500">/</span>
+                      <input type="number" name="blood_pressure_diastolic" id="blood_pressure_diastolic"
+                             min="30" max="150" step="1"
+                             class="w-20 rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                             placeholder="Dia" />
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">Example: 120 / 80</p>
+                  </div>
+
+                  <div>
+                    <label for="temperature" class="block text-sm font-medium text-gray-700">Temperature</label>
+                    <div class="mt-1 flex space-x-2">
+                      <input type="number" name="temperature" id="temperature"
+                             step="0.1"
+                             class="w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                             placeholder="e.g. 98.6" />
+                      <select name="temperature_unit" id="temperature_unit"
+                              class="w-28 rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                        <option value="c">°C</option>
+                        <option value="f">°F</option>
+                      </select>
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">Provide a number and choose Celsius or Fahrenheit.</p>
+                  </div>
+
+                  <div>
+                    <label for="weight" class="block text-sm font-medium text-gray-700">Weight (kg)</label>
+                    <input type="number" name="weight" id="weight"
+                           min="1" max="500" step="0.1"
+                           class="mt-1 w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                           placeholder="e.g. 70.5" />
+                    <p class="mt-1 text-xs text-gray-500">Optional. Use kilograms.</p>
+                  </div>
+                </div>
+              </div>
+
               <button type="submit"
                 class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                 Analyze Symptoms

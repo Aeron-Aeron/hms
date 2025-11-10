@@ -56,10 +56,27 @@ class PatientDashboardController extends Controller
     try {
       $validated = $request->validate([
         'symptoms' => 'required|array|min:1',
-        'symptoms.*' => 'exists:symptoms,id'
+        'symptoms.*' => 'exists:symptoms,id',
+    'blood_pressure_systolic' => 'nullable|integer|between:50,250|required_with:blood_pressure_diastolic',
+    'blood_pressure_diastolic' => 'nullable|integer|between:30,150|required_with:blood_pressure_systolic',
+    'temperature' => 'nullable|numeric',
+    'temperature_unit' => 'nullable|in:c,f|required_with:temperature',
+    'weight' => 'nullable|numeric|between:1,500',
       ]);
 
       \Log::info('Selected symptoms:', $validated['symptoms']); // Debug log
+
+      $vitals = collect($request->only([
+        'blood_pressure_systolic',
+        'blood_pressure_diastolic',
+        'temperature',
+        'weight',
+        'temperature_unit',
+      ]))->filter(fn($value) => $value !== null && $value !== '');
+
+      if ($vitals->isNotEmpty()) {
+        \Log::info('Submitted vitals:', $vitals->toArray());
+      }
 
       $selectedSymptoms = collect($validated['symptoms']);
 
