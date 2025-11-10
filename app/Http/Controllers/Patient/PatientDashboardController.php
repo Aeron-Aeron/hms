@@ -15,7 +15,9 @@ class PatientDashboardController extends Controller
     $user = auth()->user();
 
     // Get user's appointments
-    $appointments = $user->appointments()
+    $appointmentsQuery = $user->appointments();
+
+    $appointments = (clone $appointmentsQuery)
       ->with(['doctor:id,name'])
       ->select(['id', 'doctor_id', 'patient_id', 'scheduled_time', 'status'])
       ->latest()
@@ -23,7 +25,9 @@ class PatientDashboardController extends Controller
       ->get();
 
     // Get user's health problems
-    $healthProblems = $user->healthProblems()
+    $healthProblemsQuery = $user->healthProblems();
+
+    $healthProblems = (clone $healthProblemsQuery)
       ->select(['id', 'user_id', 'title', 'description', 'created_at'])
       ->latest()
       ->take(5)
@@ -38,13 +42,25 @@ class PatientDashboardController extends Controller
       ->take(4)
       ->get();
 
+    $dashboardSummary = [
+      'upcomingAppointments' => (clone $appointmentsQuery)
+        ->where('scheduled_time', '>=', now())
+        ->count(),
+      'totalReports' => $healthProblemsQuery->count(),
+      'doctorConnections' => $user->appointments()
+        ->distinct('doctor_id')
+        ->count('doctor_id'),
+    ];
+
     // Get all symptoms for the symptom checker
     $symptoms = Symptom::orderBy('name')->get(['id', 'name']);
 
     return view('patient.dashboard', compact(
+      'user',
       'appointments',
       'healthProblems',
       'featuredDoctors',
+      'dashboardSummary',
       'symptoms'
     ));
   }
