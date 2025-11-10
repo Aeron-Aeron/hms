@@ -24,10 +24,23 @@ class CustomRegisterController extends Controller
 
         try {
             // Basic validation for all users
+            $phoneCountry = trim((string) $request->input('phone_country', '+1'));
+            $phoneCountry = str_starts_with($phoneCountry, '+') ? $phoneCountry : '+'.$phoneCountry;
+            $phoneNumber = preg_replace('/\D/', '', (string) $request->input('phone_number', ''));
+            $combinedPhone = $phoneCountry.$phoneNumber;
+
+            $request->merge([
+                'phone_country' => $phoneCountry,
+                'phone_number' => $phoneNumber,
+                'phone' => $combinedPhone,
+            ]);
+
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|string|email|max:255|unique:users',
-                'phone' => 'required|string|max:20|unique:users,phone',
+                'phone_country' => 'required|regex:/^\+[0-9]{1,3}$/',
+                'phone_number' => 'required|digits_between:7,12',
+                'phone' => 'required|regex:/^\+[0-9]{8,15}$/|unique:users,phone',
                 'date_of_birth' => 'required|date|before_or_equal:today|after_or_equal:1900-01-01',
                 'password' => 'required|string|min:8|confirmed',
                 'role' => 'required|in:admin,doctor,patient',

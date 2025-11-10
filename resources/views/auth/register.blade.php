@@ -2,6 +2,10 @@
     <form method="POST" action="{{ route('custom.register') }}">
         @csrf
 
+        @php
+            $countryCodes = config('country_codes', []);
+        @endphp
+
         <!-- Name -->
         <div>
             <x-input-label for="name" :value="__('Name')" />
@@ -18,8 +22,31 @@
 
         <!-- Phone Number -->
         <div class="mt-4">
-            <x-input-label for="phone" :value="__('Phone Number')" />
-            <x-text-input id="phone" class="block mt-1 w-full" type="tel" name="phone" :value="old('phone')" required autocomplete="tel" />
+            <x-input-label for="phone_country" :value="__('Phone Number')" />
+            <div class="mt-1 flex">
+                <select id="phone_country" name="phone_country"
+                        class="w-44 rounded-md rounded-r-none border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                        required>
+                    @foreach($countryCodes as $code => $label)
+                        <option value="{{ $code }}" {{ old('phone_country', '+1') === $code ? 'selected' : '' }}>
+                            {{ $label }}
+                        </option>
+                    @endforeach
+                </select>
+                <x-text-input id="phone_number" name="phone_number" type="tel"
+                               :value="old('phone_number')"
+                               class="flex-1 rounded-l-none"
+                               inputmode="numeric" pattern="[0-9]{7,12}" maxlength="12"
+                               placeholder="{{ __('Phone number without country code') }}" required />
+            </div>
+            <input type="hidden" name="phone" id="phone" value="{{ old('phone') }}">
+            <p class="mt-2 text-sm text-gray-500" id="phone_preview"
+               data-default-message="{{ __('Include only digits, 7-12 numbers long.') }}"
+               data-current-label="{{ __('Current') }}">
+                {{ old('phone') ? __('Current: :phone', ['phone' => old('phone')]) : __('Include only digits, 7-12 numbers long.') }}
+            </p>
+            <x-input-error :messages="$errors->get('phone_country')" class="mt-2" />
+            <x-input-error :messages="$errors->get('phone_number')" class="mt-2" />
             <x-input-error :messages="$errors->get('phone')" class="mt-2" />
         </div>
 
@@ -85,6 +112,12 @@
         (function () {
             const dobInput = document.getElementById('date_of_birth');
             const ageInput = document.getElementById('age');
+            const phoneCountry = document.getElementById('phone_country');
+            const phoneNumber = document.getElementById('phone_number');
+            const phoneHidden = document.getElementById('phone');
+            const phonePreview = document.getElementById('phone_preview');
+            const defaultPhoneMessage = phonePreview?.dataset.defaultMessage ?? 'Include only digits, 7-12 numbers long.';
+            const currentPhoneLabel = phonePreview?.dataset.currentLabel ?? 'Current';
 
             function calculateAge(dateString) {
                 const dob = new Date(dateString);
@@ -111,11 +144,42 @@
                 ageInput.value = calculateAge(dobInput.value);
             }
 
+            function sanitizePhoneNumber(value) {
+                return value.replace(/\D/g, '').slice(0, 12);
+            }
+
+            function updatePhone() {
+                if (!phoneCountry || !phoneNumber || !phoneHidden) {
+                    return;
+                }
+
+                phoneNumber.value = sanitizePhoneNumber(phoneNumber.value);
+                const combined = phoneNumber.value ? `${phoneCountry.value}${phoneNumber.value}` : '';
+                phoneHidden.value = combined;
+
+                if (phonePreview) {
+                    phonePreview.textContent = combined
+                        ? `${currentPhoneLabel}: ${combined}`
+                        : defaultPhoneMessage;
+                }
+            }
+
             if (dobInput) {
                 dobInput.addEventListener('change', updateAge);
                 dobInput.addEventListener('keyup', updateAge);
                 updateAge();
             }
+
+            if (phoneNumber) {
+                phoneNumber.addEventListener('input', updatePhone);
+                phoneNumber.addEventListener('blur', updatePhone);
+            }
+
+            if (phoneCountry) {
+                phoneCountry.addEventListener('change', updatePhone);
+            }
+
+            updatePhone();
         })();
     </script>
 </x-guest-layout>

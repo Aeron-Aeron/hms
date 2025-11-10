@@ -26,7 +26,7 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
             'role' => 'patient',
-            'phone' => $this->faker->unique()->numerify('##########'),
+            'phone' => '+1'.$this->faker->unique()->numerify('##########'),
             'date_of_birth' => $this->faker->dateTimeBetween('-80 years', '-18 years')->format('Y-m-d'),
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,

@@ -30,22 +30,35 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
+    $phoneCountry = trim((string) $request->input('phone_country', '+1'));
+        $phoneCountry = str_starts_with($phoneCountry, '+') ? $phoneCountry : '+'.$phoneCountry;
+        $phoneNumber = preg_replace('/\D/', '', (string) $request->input('phone_number', ''));
+        $combinedPhone = $phoneCountry.$phoneNumber;
+
+        $request->merge([
+            'phone_country' => $phoneCountry,
+            'phone_number' => $phoneNumber,
+            'phone' => $combinedPhone,
+        ]);
+
+        $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'phone' => ['required', 'string', 'max:20', 'unique:users,phone'],
+            'phone_country' => ['required', 'regex:/^\+[0-9]{1,3}$/'],
+            'phone_number' => ['required', 'digits_between:7,12'],
+            'phone' => ['required', 'regex:/^\+[0-9]{8,15}$/', 'unique:users,phone'],
             'date_of_birth' => ['required', 'date', 'before_or_equal:today', 'after_or_equal:1900-01-01'],
             'role' => ['required', 'in:admin,doctor,patient'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'date_of_birth' => $request->date_of_birth,
-            'password' => Hash::make($request->password),
-            'role' => $request->role,
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'],
+            'date_of_birth' => $validated['date_of_birth'],
+            'password' => Hash::make($validated['password']),
+            'role' => $validated['role'],
         ]);
 
         event(new Registered($user));

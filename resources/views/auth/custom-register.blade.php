@@ -24,6 +24,10 @@
             <form method="POST" action="{{ route('register') }}" id="registerForm">
                 @csrf
 
+                @php
+                    $countryCodes = config('country_codes', []);
+                @endphp
+
                 <!-- Name -->
                 <div class="mb-4">
                     <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
@@ -40,10 +44,36 @@
 
                 <!-- Phone -->
                 <div class="mb-4">
-                    <label for="phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
-                    <input type="tel" name="phone" id="phone" value="{{ old('phone') }}" required
-                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                           placeholder="e.g. 0712345678">
+                    <label for="phone_country" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                    <div class="mt-1 flex">
+                        <select id="phone_country" name="phone_country" required
+                                class="w-44 rounded-md rounded-r-none border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            @foreach($countryCodes as $code => $label)
+                                <option value="{{ $code }}" {{ old('phone_country', '+1') === $code ? 'selected' : '' }}>
+                                    {{ $label }}
+                                </option>
+                            @endforeach
+                        </select>
+               <input type="tel" name="phone_number" id="phone_number" value="{{ old('phone_number') }}" required
+                   inputmode="numeric" pattern="[0-9]{7,12}" maxlength="12"
+                   class="flex-1 rounded-md rounded-l-none border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                               placeholder="Phone number without country code">
+                    </div>
+                    <input type="hidden" name="phone" id="phone" value="{{ old('phone') }}">
+                    <p class="mt-2 text-sm text-gray-500" id="phonePreview"
+                       data-default-message="{{ __('Include only digits, 7-12 numbers long.') }}"
+                       data-current-label="{{ __('Current') }}">
+                        {{ old('phone') ? __('Current: :phone', ['phone' => old('phone')]) : __('Include only digits, 7-12 numbers long.') }}
+                    </p>
+                    @error('phone_country')
+                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                    @error('phone_number')
+                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                    @error('phone')
+                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <!-- Date of Birth -->
@@ -130,6 +160,12 @@
             const doctorInputs = ['specialization', 'qualification', 'experience'];
             const dobInput = document.getElementById('date_of_birth');
             const ageField = document.getElementById('age');
+            const phoneCountry = document.getElementById('phone_country');
+            const phoneNumber = document.getElementById('phone_number');
+            const phoneHidden = document.getElementById('phone');
+            const phonePreview = document.getElementById('phonePreview');
+            const defaultPhoneMessage = phonePreview?.dataset.defaultMessage ?? 'Include only digits, 7-12 numbers long.';
+            const currentPhoneLabel = phonePreview?.dataset.currentLabel ?? 'Current';
 
             function toggleDoctorFields() {
                 const isDoctor = roleSelect.value === 'doctor';
@@ -162,12 +198,37 @@
             }
 
             function updateAge() {
+                if (!dobInput || !ageField) {
+                    return;
+                }
+
                 ageField.value = calculateAge(dobInput.value);
+            }
+
+            function sanitizePhoneNumber(value) {
+                return value.replace(/\D/g, '').slice(0, 12);
+            }
+
+            function updatePhone() {
+                if (!phoneCountry || !phoneNumber || !phoneHidden) {
+                    return;
+                }
+
+                phoneNumber.value = sanitizePhoneNumber(phoneNumber.value);
+                const combined = phoneNumber.value ? `${phoneCountry.value}${phoneNumber.value}` : '';
+                phoneHidden.value = combined;
+
+                if (phonePreview) {
+                    phonePreview.textContent = combined
+                        ? `${currentPhoneLabel}: ${combined}`
+                        : defaultPhoneMessage;
+                }
             }
 
             // Initial toggle
             toggleDoctorFields();
             updateAge();
+            updatePhone();
 
             // Toggle on role change
             roleSelect.addEventListener('change', toggleDoctorFields);
@@ -177,8 +238,19 @@
                 dobInput.addEventListener('keyup', updateAge);
             }
 
+            if (phoneNumber) {
+                phoneNumber.addEventListener('input', updatePhone);
+                phoneNumber.addEventListener('blur', updatePhone);
+            }
+
+            if (phoneCountry) {
+                phoneCountry.addEventListener('change', updatePhone);
+            }
+
             // Form submission handling
             form.addEventListener('submit', function(e) {
+                updatePhone();
+
                 if (roleSelect.value === 'doctor') {
                     let isValid = true;
                     doctorInputs.forEach(fieldId => {

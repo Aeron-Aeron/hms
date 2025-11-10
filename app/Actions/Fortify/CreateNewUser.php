@@ -19,10 +19,19 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
-        Validator::make($input, [
+    $phoneCountry = isset($input['phone_country']) ? trim((string) $input['phone_country']) : '+1';
+    $phoneCountry = str_starts_with($phoneCountry, '+') ? $phoneCountry : '+'.$phoneCountry;
+    $phoneNumber = preg_replace('/\D/', '', $input['phone_number'] ?? '');
+        $input['phone_country'] = $phoneCountry;
+        $input['phone_number'] = $phoneNumber;
+        $input['phone'] = $phoneCountry.$phoneNumber;
+
+        $validated = Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'phone' => ['required', 'string', 'max:20', 'unique:users,phone'],
+            'phone_country' => ['required', 'regex:/^\+[0-9]{1,3}$/'],
+            'phone_number' => ['required', 'digits_between:7,12'],
+            'phone' => ['required', 'regex:/^\+[0-9]{8,15}$/', 'unique:users,phone'],
             'date_of_birth' => ['required', 'date', 'before_or_equal:today', 'after_or_equal:1900-01-01'],
             'role' => ['required', 'in:admin,doctor,patient'],
             'password' => $this->passwordRules(),
@@ -30,12 +39,12 @@ class CreateNewUser implements CreatesNewUsers
         ])->validate();
 
         return User::create([
-            'name' => $input['name'],
-            'email' => $input['email'],
-            'phone' => $input['phone'],
-            'date_of_birth' => $input['date_of_birth'],
-            'role' => $input['role'],
-            'password' => Hash::make($input['password']),
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'],
+            'date_of_birth' => $validated['date_of_birth'],
+            'role' => $validated['role'],
+            'password' => Hash::make($validated['password']),
         ]);
     }
 }
