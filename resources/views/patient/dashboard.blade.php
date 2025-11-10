@@ -277,103 +277,123 @@
 
   @push('scripts')
   <script>
-    // Symptom search functionality
-    const searchInput = document.getElementById('symptomSearch');
-    const symptomsContainer = document.getElementById('symptomsContainer');
-    const selectedSymptomsDiv = document.getElementById('selectedSymptoms');
+    (function () {
+      window.toggleSymptomChecker = function toggleSymptomChecker() {
+        const section = document.getElementById('symptomCheckerSection');
+        section?.classList.toggle('hidden');
+      };
 
-    searchInput?.addEventListener('input', function(e) {
-      const searchTerm = e.target.value.toLowerCase();
-      const symptomItems = symptomsContainer.getElementsByClassName('symptom-item');
-
-      Array.from(symptomItems).forEach(item => {
-        const label = item.querySelector('label').textContent.toLowerCase();
-        item.style.display = label.includes(searchTerm) ? '' : 'none';
-      });
-    });
-
-    // Update selected symptoms display
-    function updateSelectedSymptoms() {
-      const checkboxes = symptomsContainer.querySelectorAll('input[type="checkbox"]:checked');
-      selectedSymptomsDiv.innerHTML = '';
-
-      checkboxes.forEach(checkbox => {
-        const label = checkbox.nextElementSibling.textContent.trim();
-        const pill = document.createElement('span');
-        pill.className = 'px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm';
-        pill.textContent = label;
-        selectedSymptomsDiv.appendChild(pill);
-      });
-    }
-
-    // Add event listeners to checkboxes
-    symptomsContainer?.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-      checkbox.addEventListener('change', updateSelectedSymptoms);
-    });
-
-    function toggleSymptomChecker() {
-      const section = document.getElementById('symptomCheckerSection');
-      section.classList.toggle('hidden');
-    }
-
-    // Form submission code
-    document.getElementById('symptomForm')?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const form = e.target;
+      const symptomForm = document.getElementById('symptomForm');
+      const searchInput = document.getElementById('symptomSearch');
+      const symptomsContainer = document.getElementById('symptomsContainer');
+      const selectedSymptomsDiv = document.getElementById('selectedSymptoms');
       const resultsList = document.getElementById('resultsList');
       const symptomResults = document.getElementById('symptomResults');
 
-      try {
-        const response = await fetch(form.action, {
-          method: 'POST',
-          body: new FormData(form),
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-          }
-        });
+      if (!symptomForm || !symptomsContainer) {
+        return;
+      }
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Server error occurred');
+      const symptomCheckboxes = Array.from(symptomsContainer.querySelectorAll('input[type="checkbox"]'));
+
+      if (!resultsList || !symptomResults) {
+        return;
+      }
+
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+      if (!csrfToken) {
+        console.error('Missing CSRF token: symptom checker aborted.');
+        return;
+      }
+
+      searchInput?.addEventListener('input', (event) => {
+        const searchTerm = event.target.value.toLowerCase();
+
+        symptomCheckboxes.forEach((checkbox) => {
+          const label = checkbox.nextElementSibling?.textContent?.toLowerCase() ?? '';
+          checkbox.parentElement.style.display = label.includes(searchTerm) ? '' : 'none';
+        });
+      });
+
+      const updateSelectedSymptoms = () => {
+        if (!selectedSymptomsDiv) {
+          return;
         }
 
-        const data = await response.json();
+        selectedSymptomsDiv.innerHTML = '';
 
-        // Clear previous results
-        resultsList.innerHTML = '';
+        symptomCheckboxes
+          .filter((checkbox) => checkbox.checked)
+          .forEach((checkbox) => {
+            const label = checkbox.nextElementSibling?.textContent?.trim();
+            if (!label) {
+              return;
+            }
 
-        // Check if predictions exist and is an array
-        if (data.predictions && Array.isArray(data.predictions)) {
-          // Display new results
-          data.predictions.forEach(prediction => {
-            const div = document.createElement('div');
-            div.className = 'p-4 border rounded-lg mb-2';
-            div.innerHTML = `
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <div class="font-semibold">${prediction.disease.name}</div>
-                                    <div class="text-sm text-gray-600">Match: ${prediction.match_percentage}%</div>
-                                </div>
-                                <a href="/patient/specialists/${encodeURIComponent(prediction.disease.name)}"
-                                   class="bg-green-500 hover:bg-green-700 text-white text-sm font-bold py-1 px-3 rounded">
-                                    Find Specialist
-                                </a>
-                            </div>
-                        `;
-            resultsList.appendChild(div);
+            const pill = document.createElement('span');
+            pill.className = 'px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm';
+            pill.textContent = label;
+            selectedSymptomsDiv.appendChild(pill);
+          });
+      };
+
+      symptomCheckboxes.forEach((checkbox) => {
+        checkbox.addEventListener('change', updateSelectedSymptoms);
+      });
+
+      updateSelectedSymptoms();
+
+      symptomForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        try {
+          const response = await fetch(symptomForm.action, {
+            method: 'POST',
+            body: new FormData(symptomForm),
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json',
+              'X-CSRF-TOKEN': csrfToken,
+            },
           });
 
-          symptomResults.classList.remove('hidden');
-        } else {
-          throw new Error('No predictions received from server');
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Server error occurred');
+          }
+
+          const data = await response.json();
+          resultsList.innerHTML = '';
+
+          if (Array.isArray(data.predictions) && data.predictions.length) {
+            data.predictions.forEach((prediction) => {
+              const wrapper = document.createElement('div');
+              wrapper.className = 'p-4 border rounded-lg mb-2';
+              wrapper.innerHTML = `
+                <div class="flex justify-between items-start">
+                  <div>
+                    <div class="font-semibold">${prediction.disease.name}</div>
+                    <div class="text-sm text-gray-600">Match: ${prediction.match_percentage}%</div>
+                  </div>
+                  <a href="/patient/specialists/${encodeURIComponent(prediction.disease.name)}"
+                     class="bg-green-500 hover:bg-green-700 text-white text-sm font-bold py-1 px-3 rounded">
+                    Find Specialist
+                  </a>
+                </div>`;
+
+              resultsList.appendChild(wrapper);
+            });
+
+            symptomResults?.classList.remove('hidden');
+          } else {
+            throw new Error('No predictions received from server');
+          }
+        } catch (error) {
+          console.error('Symptom checker error:', error);
+          alert('An error occurred while processing your symptoms. Please try again.');
         }
-      } catch (error) {
-        console.error('Error details:', error);
-        alert('An error occurred while processing your symptoms. Please try again.');
-      }
-    });
+      });
+    })();
   </script>
   @endpush
 </x-app-layout>

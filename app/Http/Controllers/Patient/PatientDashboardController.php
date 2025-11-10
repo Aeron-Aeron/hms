@@ -16,32 +16,30 @@ class PatientDashboardController extends Controller
 
     // Get user's appointments
     $appointments = $user->appointments()
-      ->with('doctor')
+      ->with(['doctor:id,name'])
+      ->select(['id', 'doctor_id', 'patient_id', 'scheduled_time', 'status'])
       ->latest()
       ->take(5)
       ->get();
 
     // Get user's health problems
     $healthProblems = $user->healthProblems()
+      ->select(['id', 'user_id', 'title', 'description', 'created_at'])
       ->latest()
       ->take(5)
       ->get();
 
     // Get featured doctors (those with highest ratings)
     $featuredDoctors = User::where('role', 'doctor')
-      ->with('doctorProfile')
+      ->select(['id', 'name'])
+      ->with(['doctorProfile:id,user_id,specialization'])
       ->withAvg('ratings', 'rating')
-      ->withCount('ratings')
-      ->withCount('appointments')
       ->orderByDesc('ratings_avg_rating')
       ->take(4)
       ->get();
 
     // Get all symptoms for the symptom checker
-    $symptoms = Symptom::orderBy('name')->get();
-
-    // Debug symptoms
-    \Log::info('Symptoms count: ' . $symptoms->count());
+    $symptoms = Symptom::orderBy('name')->get(['id', 'name']);
 
     return view('patient.dashboard', compact(
       'appointments',
@@ -64,18 +62,22 @@ class PatientDashboardController extends Controller
     'weight' => 'nullable|numeric|between:1,500',
       ]);
 
-      \Log::info('Selected symptoms:', $validated['symptoms']); // Debug log
+      if (config('app.debug')) {
+        \Log::debug('Selected symptoms', $validated['symptoms']);
+      }
 
-      $vitals = collect($request->only([
-        'blood_pressure_systolic',
-        'blood_pressure_diastolic',
-        'temperature',
-        'weight',
-        'temperature_unit',
-      ]))->filter(fn($value) => $value !== null && $value !== '');
+      $vitals = collect($validated)
+        ->only([
+          'blood_pressure_systolic',
+          'blood_pressure_diastolic',
+          'temperature',
+          'temperature_unit',
+          'weight',
+        ])
+        ->filter(fn($value) => $value !== null && $value !== '');
 
-      if ($vitals->isNotEmpty()) {
-        \Log::info('Submitted vitals:', $vitals->toArray());
+      if ($vitals->isNotEmpty() && config('app.debug')) {
+        \Log::debug('Submitted vitals', $vitals->toArray());
       }
 
       $selectedSymptoms = collect($validated['symptoms']);
@@ -83,9 +85,13 @@ class PatientDashboardController extends Controller
       // Get all diseases that have any of the selected symptoms
       $diseases = Disease::whereHas('symptoms', function ($query) use ($selectedSymptoms) {
         $query->whereIn('symptoms.id', $selectedSymptoms);
-      })->with('symptoms')->get();
+      })
+        ->with(['symptoms:id'])
+        ->get(['id', 'name']);
 
-      \Log::info('Found diseases count: ' . $diseases->count()); // Debug log
+      if (config('app.debug')) {
+        \Log::debug('Potential diseases found', ['count' => $diseases->count()]);
+      }
 
       if ($diseases->isEmpty()) {
         return response()->json([
@@ -98,13 +104,14 @@ class PatientDashboardController extends Controller
       $predictions = $diseases->map(function ($disease) use ($selectedSymptoms) {
         $diseaseSymptoms = $disease->symptoms->pluck('id');
         $matchingSymptoms = $diseaseSymptoms->intersect($selectedSymptoms);
+        $totalSymptoms = max($diseaseSymptoms->count(), 1);
 
         return [
           'disease' => [
             'name' => $disease->name,
             'id' => $disease->id
           ],
-          'match_percentage' => round(($matchingSymptoms->count() / $diseaseSymptoms->count()) * 100, 2),
+          'match_percentage' => round(($matchingSymptoms->count() / $totalSymptoms) * 100, 2),
           'matching_symptoms' => $matchingSymptoms->count()
         ];
       })
@@ -112,7 +119,9 @@ class PatientDashboardController extends Controller
         ->take(5)
         ->values();
 
-      \Log::info('Predictions generated:', $predictions->toArray()); // Debug log
+      if (config('app.debug')) {
+        \Log::debug('Predictions generated', $predictions->toArray());
+      }
 
       return response()->json([
         'success' => true,
